@@ -46,6 +46,12 @@
   revision = "1ea4449da9834f4d333f1cc461c374aea217d249"
 
 [[projects]]
+  name = "github.com/urfave/negroni"
+  packages = ["."]
+  revision = "c6a59be0ce122566695fbd5e48a77f8f10c8a63a"
+  version = "v1.0.0"
+
+[[projects]]
   name = "go.uber.org/atomic"
   packages = ["."]
   revision = "4e336646b2ef9fc6e47be8e21594178f98e5ebcf"
@@ -79,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fb2cbd2ba34da04dfa820252a2c1b7f224fed111d66ed3e220268575c11bb764"
+  inputs-digest = "b417664111d17abc77b175776fbad5ef749171eef424456621ba0b563be6f286"
   solver-name = "gps-cdcl"
   solver-version = 1

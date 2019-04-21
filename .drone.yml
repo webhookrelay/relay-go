@@ -16,6 +16,21 @@ steps:
   commands:
     - make test-pretty 
 
+- name: e2e-test
+  image: golang:1.12
+  environment:
+    BUCKETS:
+      from_secret: buckets
+    INPUT_URL:
+      from_secret: input_url
+    RELAY_KEY:
+      from_secret: relay_key
+    RELAY_SECRET:
+      from_secret: relay_secret    
+  commands:
+    - make install
+    - make e2e
+
 - name: slack
   image: plugins/slack
   settings:

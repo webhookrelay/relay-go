@@ -13,8 +13,12 @@ install:
 test:
 	go test -v -failfast `go list ./... | egrep -v /tests/`
 
+e2e:
+	go get github.com/mfridman/tparse
+	cd tests/forward && go test
+
 test-pretty:
-	go get github.com/mfridman/tparse	
+	go get github.com/mfridman/tparse
 	go test -json  -v `go list ./... | egrep -v /tests/` -cover | tparse -all -smallscreen
 
 gen-json-types:
