@@ -7,7 +7,7 @@ Lightweight and Open Source Webhook Relay forwarding client.
 
 ## Installation
 
-This client requires Go to be installed ([install instructions](https://golang.org/doc/install)) on your system. To install client application, run:
+This client requires Go 1.12 (earlier versions might work as well) to be installed ([install instructions](https://golang.org/doc/install)) on your system. To install client application, run:
 
 ```
 make install
