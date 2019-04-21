@@ -27,8 +27,8 @@ export BUCKETS=foo
 
 Then:
 
-```
-relayd forward --buckets foo  
+```bash
+relayd forward
 ```
 
 Alternatively, you can set these variables through command line flags:
