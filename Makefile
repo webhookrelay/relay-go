@@ -10,6 +10,10 @@ LDFLAGS		+= -X github.com/webhookrelay/relay-go/version.BuildDate=$(JOBDATE)
 install:
 	cd cmd/relayd && go install -ldflags "$(LDFLAGS)"
 
+release:
+	cd cmd/relayd && env GOARCH=amd64 GOOS=linux go build -ldflags "$(LDFLAGS)" -o release/relayd
+	cd cmd/relayd && env GOARCH=amd64 GOOS=windows go build -ldflags "$(LDFLAGS)" -o release/relayd.exe
+
 test:
 	go test -v -failfast `go list ./... | egrep -v /tests/`
 
