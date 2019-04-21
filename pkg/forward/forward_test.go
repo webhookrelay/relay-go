@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/webhookrelay/relay-go/pkg/types"
-	// pb "github.com/rusenask/client/daemon/grpc/webhook"
 )
 
 func TestRelaySuccess(t *testing.T) {
@@ -20,7 +19,7 @@ func TestRelaySuccess(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	dr := NewDefaultRelayer(&Opts{Retries: 1})
+	dr := NewDefaultForwarder(&Opts{Retries: 1})
 
 	wr := types.Event{
 		Meta: types.EventMeta{
@@ -52,7 +51,7 @@ func TestRelayCheckBody(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	dr := NewDefaultRelayer(&Opts{Retries: 1})
+	dr := NewDefaultForwarder(&Opts{Retries: 1})
 	wr := types.Event{
 		Meta: types.EventMeta{
 			OutputDestination: ts.URL,
@@ -84,7 +83,7 @@ func TestRelayRetryOnce(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	dr := NewDefaultRelayer(&Opts{Retries: 1})
+	dr := NewDefaultForwarder(&Opts{Retries: 1})
 
 	wr := types.Event{
 		Meta: types.EventMeta{
@@ -112,7 +111,7 @@ func TestRelayGiveUp(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	dr := NewDefaultRelayer(&Opts{Retries: 1})
+	dr := NewDefaultForwarder(&Opts{Retries: 1})
 
 	wr := types.Event{
 		Meta: types.EventMeta{
@@ -148,7 +147,7 @@ func TestRelayRetryTwice(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	dr := NewDefaultRelayer(&Opts{Retries: 3})
+	dr := NewDefaultForwarder(&Opts{Retries: 3})
 
 	wr := types.Event{
 		Meta: types.EventMeta{

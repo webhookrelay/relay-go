@@ -12,23 +12,17 @@ import (
 	"go.uber.org/zap"
 )
 
-// Relayer - relayer interface
-type Relayer interface {
-	Relay(wh *types.Event) *types.EventStatus
+// Forwarder is responsible for receiving and processing incoming webhook events
+type Forwarder interface {
+	Forward(wh types.Event) *types.EventStatus
 }
 
-// DefaultRelayer - default 'last mile' webhook relayer
-type DefaultRelayer struct {
+var _ Forwarder = &DefaultForwarder{}
+
+// DefaultForwarder - default 'last mile' webhook Forwarder
+type DefaultForwarder struct {
 	hClient *http.Client
-
 	rClient *retryablehttp.Client
-
-	// maximum number of retries that this relayer should try
-	// before giving up.
-	retries int
-
-	// backoff strategy in seconds
-	backoff int
 
 	logger *zap.SugaredLogger
 }
@@ -40,8 +34,8 @@ type Opts struct {
 	Logger   *zap.SugaredLogger
 }
 
-// NewDefaultRelayer - create an instance of default relayer
-func NewDefaultRelayer(opts *Opts) *DefaultRelayer {
+// NewDefaultForwarder - create an instance of default Forwarder
+func NewDefaultForwarder(opts *Opts) *DefaultForwarder {
 
 	httpClient := &http.Client{}
 
@@ -71,11 +65,11 @@ func NewDefaultRelayer(opts *Opts) *DefaultRelayer {
 
 	client.RetryMax = opts.Retries
 
-	return &DefaultRelayer{rClient: client, hClient: httpClient, logger: opts.Logger}
+	return &DefaultForwarder{rClient: client, hClient: httpClient, logger: opts.Logger}
 }
 
-// Relay - relaying incoming webhook to original destination
-func (r *DefaultRelayer) Relay(wh types.Event) *types.EventStatus {
+// Forward - relaying incoming webhook to original destination
+func (r *DefaultForwarder) Forward(wh types.Event) *types.EventStatus {
 	if wh.RawQuery != "" {
 		wh.Meta.OutputDestination = wh.Meta.OutputDestination + "?" + wh.RawQuery
 	}
