@@ -1,0 +1,9 @@
+language: go
+go_import_path: github.com/heptio/workgroup
+go:
+  - 1.10.x
+
+sudo: false
+
+script:
+  - make check

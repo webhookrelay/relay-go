@@ -29,6 +29,12 @@
   version = "v0.5.1"
 
 [[projects]]
+  name = "github.com/heptio/workgroup"
+  packages = ["."]
+  revision = "905fccf41a08323fdad6a1bd277290fdc54d92c3"
+  version = "v0.8.0-beta.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/mailru/easyjson"
   packages = [
@@ -73,6 +79,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9ed65886371f624ae781730306fc8500555854cb68ab26f59c26888c7e6441be"
+  inputs-digest = "fb2cbd2ba34da04dfa820252a2c1b7f224fed111d66ed3e220268575c11bb764"
   solver-name = "gps-cdcl"
   solver-version = 1
