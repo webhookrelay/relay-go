@@ -42,7 +42,7 @@ type EventMeta struct {
 //   }
 type Event struct {
 	Type     string              `json:"type"`
-	Meta     *EventMeta          `json:"meta"`
+	Meta     EventMeta           `json:"meta"`
 	Headers  map[string][]string `json:"headers"`
 	RawQuery string              `json:"query"`
 	Body     string              `json:"body"`

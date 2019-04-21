@@ -289,16 +289,8 @@ func easyjson8df87204DecodeGithubComWebhookrelayRelayGoPkgTypes2(in *jlexer.Lexe
 		case "type":
 			out.Type = string(in.String())
 		case "meta":
-			if in.IsNull() {
-				in.Skip()
-				out.Meta = nil
-			} else {
-				if out.Meta == nil {
-					out.Meta = new(EventMeta)
-				}
-				if data := in.Raw(); in.Ok() {
-					in.AddError((*out.Meta).UnmarshalJSON(data))
-				}
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Meta).UnmarshalJSON(data))
 			}
 		case "headers":
 			if in.IsNull() {
@@ -383,11 +375,7 @@ func easyjson8df87204EncodeGithubComWebhookrelayRelayGoPkgTypes2(out *jwriter.Wr
 		} else {
 			out.RawString(prefix)
 		}
-		if in.Meta == nil {
-			out.RawString("null")
-		} else {
-			out.Raw((*in.Meta).MarshalJSON())
-		}
+		out.Raw((in.Meta).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"headers\":"
