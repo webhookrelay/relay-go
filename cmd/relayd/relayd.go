@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"os/signal"
 	"strings"
 
 	"github.com/webhookrelay/relay-go/pkg/client"
@@ -119,6 +120,17 @@ func main() {
 				logger.Errorf("failed to start relay client: %s", err)
 			}
 			return err
+		})
+
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, os.Interrupt)
+		g.Add(func(stop <-chan struct{}) error {
+			// go func() {
+			for range signalChan {
+				logger.Info("received an interrupt, shutting down...")
+				return nil
+			}
+			return nil
 		})
 
 		err := g.Run()

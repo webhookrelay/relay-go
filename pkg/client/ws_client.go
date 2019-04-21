@@ -80,8 +80,8 @@ RECONNECT:
 		for {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
-				c.logger.Errorf("read: %s", err)
 				if !strings.Contains(err.Error(), "closed") {
+					c.logger.Errorf("read: %s", err)
 					readErrCh <- err
 				}
 
