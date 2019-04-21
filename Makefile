@@ -13,5 +13,9 @@ install:
 test:
 	go test -v -failfast `go list ./... | egrep -v /tests/`
 
+test-pretty:
+	go get github.com/mfridman/tparse	
+	go test -json  -v `go list ./... | egrep -v /tests/` -cover | tparse -all -smallscreen
+
 gen-json-types:
 	easyjson -all pkg/types/ws_types.go

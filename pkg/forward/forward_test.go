@@ -29,7 +29,7 @@ func TestRelaySuccess(t *testing.T) {
 		Body:   "hi",
 	}
 
-	ws := dr.Relay(wr)
+	ws := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("unexpected status: %d", ws.StatusCode)
 	}
@@ -60,7 +60,7 @@ func TestRelayCheckBody(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Relay(wr)
+	ws := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("failed to relay, got status: %d", ws.StatusCode)
 	}
@@ -93,7 +93,7 @@ func TestRelayRetryOnce(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Relay(wr)
+	ws := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("failed to relay, got status: %d", ws.StatusCode)
 	}
@@ -121,7 +121,7 @@ func TestRelayGiveUp(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Relay(wr)
+	ws := dr.Forward(wr)
 	if ws.StatusCode != http.StatusInternalServerError {
 		t.Errorf("should have failed with 500, got: %d", ws.StatusCode)
 	}
@@ -157,7 +157,7 @@ func TestRelayRetryTwice(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Relay(wr)
+	ws := dr.Forward(wr)
 	if ws.StatusCode != http.StatusOK {
 		t.Errorf("should have failed with 200, got: %d", ws.StatusCode)
 	}
