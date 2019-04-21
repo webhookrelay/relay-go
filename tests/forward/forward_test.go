@@ -29,7 +29,7 @@ func TestRelayFoward(t *testing.T) {
 
 	relayCLI := NewRelayCmd(os.Getenv("RELAY_KEY"), os.Getenv("RELAY_SECRET"))
 	go func() {
-		err := relayCLI.Forward(ctx, []string{"--bucket", relayCLITestBucketName, "--ws", "http://localhost:33003/webhook"})
+		err := relayCLI.Forward(ctx, []string{"--buckets", relayCLITestBucketName, "http://localhost:33003/webhook"})
 		if err != nil {
 			t.Errorf("failed to start relay process: %s", err)
 		}
