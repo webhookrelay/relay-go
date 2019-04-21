@@ -1,4 +1,6 @@
-# Go Relay
+# Go Relay 
+
+[![Build Status](https://drone-kr.webrelay.io/api/badges/webhookrelay/relay-go/status.svg)](https://drone-kr.webrelay.io/webhookrelay/relay-go)
 
 Lightweight and Open Source Webhook Relay forwarding client.
 
@@ -42,11 +44,3 @@ To run all tests:
 ```
 make test
 ```
-
-## TODO
-
-- [ ] authentication
-- [ ] webhook forwarding
-- [ ] build pipeline
-- [ ] e2e tests
-- [ ] webhook binary payload tests
