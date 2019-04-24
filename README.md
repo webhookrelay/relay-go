@@ -7,9 +7,25 @@ Lightweight and Open Source Webhook Relay forwarding client.
 
 ## Installation
 
-This client requires Go 1.12 (earlier versions might work as well) to be installed ([install instructions](https://golang.org/doc/install)) on your system. To install client application, run:
+This client requires Go 1.12 (earlier versions might work as well) to be installed ([install instructions](https://golang.org/doc/install)) on your system.
 
+1.  After the installation, find out the GOPATH using go env, and then setup a source folder there
+
+mkdir $GOPATH/src
+
+2. Clone relay-go project into your Go source directory:
+
+```bash
+cd $GOPATH/src
+mkdir -p github.com/webhookrelay/
+cd github.com/webhookrelay/
+git clone https://github.com/webhookrelay/relay-go
 ```
+
+3. Finally, to install client application, run:
+
+```bash
+cd relay-go
 make install
 ```
 
