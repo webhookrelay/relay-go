@@ -74,8 +74,6 @@ func main() {
 			Logger:   logger.With("module", "forwarder"),
 		})
 
-		logger.Infof("key: %s secret: %s", *key, *secret)
-
 		c := client.NewDefaultClient(&client.Opts{
 			AccessKey:          *key,
 			AccessSecret:       *secret,

@@ -117,7 +117,8 @@ func (r *DefaultForwarder) Forward(wh types.Event) *types.EventStatus {
 			"status_code", resp.StatusCode,
 			"destination", wh.Meta.OutputDestination,
 			"method", wh.Method,
-			"body", bodyStr,
+			"response_body", bodyStr,
+			"request_body", wh.Body,
 		)
 	}
 
