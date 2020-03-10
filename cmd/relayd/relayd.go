@@ -8,9 +8,9 @@ import (
 
 	"github.com/webhookrelay/relay-go/pkg/client"
 	"github.com/webhookrelay/relay-go/pkg/forward"
+	"github.com/webhookrelay/relay-go/pkg/logger"
 
 	"github.com/heptio/workgroup"
-	"go.uber.org/zap"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -37,7 +37,7 @@ var (
 )
 
 var (
-	defaultServerAddress = "https://my.webhookrelay.com:443/v1/socket"
+	defaultServerAddress = "https://my.webhookrelay.com:443"
 )
 
 func main() {
@@ -46,12 +46,8 @@ func main() {
 
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(ver)
 	kingpin.CommandLine.Help = "Webhook Relay lightweight client.Learn more on https://webhookrelay.com"
-	// kingpin.Parse()
 
-	zapCfg := zap.NewDevelopmentConfig()
-
-	l, _ := zapCfg.Build()
-	logger := l.Sugar()
+	logger := logger.GetLoggerInstance(logger.DefaultLogLevel).Sugar()
 
 	serverAddress := defaultServerAddress
 	if os.Getenv(EnvWebhookRelayServerAddress) != "" {
@@ -80,7 +76,7 @@ func main() {
 			InsecureSkipVerify: *insecure,
 			Logger:             logger.With("module", "client"),
 			Forwarder:          forwarder,
-			WebSocketAddress:   serverAddress,
+			ServerAddress:      serverAddress,
 			Debug:              *debug,
 		})
 
@@ -107,10 +103,6 @@ func main() {
 			go func() {
 				<-stop
 				cancel()
-				// err := apiServer.Stop()
-				// if err != nil {
-				// logger.Warnf("failure while stopping API server: %s", err)
-				// }
 			}()
 
 			err := c.StartRelay(ctx, &filter)

@@ -1,14 +1,18 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/mailru/easyjson"
+
 	"github.com/webhookrelay/relay-go/pkg/types"
 )
 
@@ -21,11 +25,13 @@ func (c *DefaultClient) dialWebSocket(ctx context.Context) (*websocket.Conn, err
 		c.wsConn.Close()
 	}
 
-	if strings.HasPrefix(c.opts.WebSocketAddress, "https://") {
-		c.opts.WebSocketAddress = strings.Replace(c.opts.WebSocketAddress, "https", "wss", 1)
+	webSocketAddress := c.opts.ServerAddress + "/v1/socket"
+
+	if strings.HasPrefix(webSocketAddress, "https://") {
+		webSocketAddress = strings.Replace(webSocketAddress, "https", "wss", 1)
 	}
-	if strings.HasPrefix(c.opts.WebSocketAddress, "http://") {
-		c.opts.WebSocketAddress = strings.Replace(c.opts.WebSocketAddress, "http", "ws", 1)
+	if strings.HasPrefix(webSocketAddress, "http://") {
+		webSocketAddress = strings.Replace(webSocketAddress, "http", "ws", 1)
 	}
 
 	if c.opts.InsecureSkipVerify {
@@ -34,13 +40,13 @@ func (c *DefaultClient) dialWebSocket(ctx context.Context) (*websocket.Conn, err
 		}
 	}
 
-	conn, _, err := websocket.DefaultDialer.Dial(c.opts.WebSocketAddress, nil)
+	conn, _, err := websocket.DefaultDialer.Dial(webSocketAddress, nil)
 	if err != nil {
 		c.logger.Errorw("websocket connection to Webhook Relay failed",
 			"error", err,
-			"address", c.opts.WebSocketAddress,
+			"address", webSocketAddress,
 		)
-		return nil, fmt.Errorf("websocket dial to '%s' failed, error: %s", c.opts.WebSocketAddress, err)
+		return nil, fmt.Errorf("websocket dial to '%s' failed, error: %s", webSocketAddress, err)
 	}
 
 	return conn, nil
@@ -99,7 +105,7 @@ RECONNECT:
 	}()
 
 	// send authentication message
-	c.logger.Infof("authenticating to '%s'...", c.opts.WebSocketAddress)
+	c.logger.Infof("authenticating to '%s'...", c.opts.ServerAddress)
 
 	bts, err := easyjson.Marshal(&types.ActionRequest{
 		Action: "auth",
@@ -200,17 +206,46 @@ func (c *DefaultClient) handleWSMessage(msg []byte) error {
 		}
 
 	case "webhook":
-		resp := c.forwarder.Forward(event)
-		c.logger.Infow("webhook request relayed",
-			"destination", event.Meta.OutputDestination,
-			"method", event.Method,
-			"bucket", event.Meta.BucketName,
-			"status", resp.StatusCode,
-			"retries", resp.Retries,
-		)
-		return nil
+		resp, err := c.forwarder.Forward(event)
+		if err != nil {
+			return err
+		}
+
+		return c.sendResponse(resp)
 	default:
 		c.logger.Warnf("unknown event type: %s", event, true)
 	}
+	return nil
+}
+
+func (c *DefaultClient) sendResponse(webhookResponse *types.LogUpdateRequest) error {
+
+	bts, err := easyjson.Marshal(webhookResponse)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, c.opts.ServerAddress+"/v1/logs/"+webhookResponse.ID, bytes.NewBuffer(bts))
+	if err != nil {
+		return err
+	}
+
+	req.SetBasicAuth(c.opts.AccessKey, c.opts.AccessSecret)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("unexpected status from Webhook Relay: %d", resp.StatusCode)
+		}
+
+		return fmt.Errorf("unexpected status from Webhook Relay: %d (%s)", resp.StatusCode, string(body))
+	}
+
 	return nil
 }

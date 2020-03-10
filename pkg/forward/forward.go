@@ -14,7 +14,7 @@ import (
 
 // Forwarder is responsible for receiving and processing incoming webhook events
 type Forwarder interface {
-	Forward(wh types.Event) *types.EventStatus
+	Forward(wh types.Event) (*types.LogUpdateRequest, error)
 }
 
 var _ Forwarder = &DefaultForwarder{}
@@ -69,17 +69,13 @@ func NewDefaultForwarder(opts *Opts) *DefaultForwarder {
 }
 
 // Forward - relaying incoming webhook to original destination
-func (r *DefaultForwarder) Forward(wh types.Event) *types.EventStatus {
+func (r *DefaultForwarder) Forward(wh types.Event) (*types.LogUpdateRequest, error) {
 	if wh.RawQuery != "" {
 		wh.Meta.OutputDestination = wh.Meta.OutputDestination + "?" + wh.RawQuery
 	}
 	req, err := retryablehttp.NewRequest(wh.Method, wh.Meta.OutputDestination, bytes.NewReader([]byte(wh.Body)))
 	if err != nil {
-		return &types.EventStatus{
-			ID:         wh.Meta.ID,
-			StatusCode: 0,
-			Message:    fmt.Sprintf("invalid request: %s", err),
-		}
+		return nil, err
 	}
 
 	var retries int
@@ -98,34 +94,39 @@ func (r *DefaultForwarder) Forward(wh types.Event) *types.EventStatus {
 	}
 
 	if err != nil {
-		return &types.EventStatus{
-			ID:         wh.Meta.ID,
-			StatusCode: statusCode,
-			Message:    fmt.Sprintf("invalid request: %s", err),
-			Retries:    retries,
-		}
+		return &types.LogUpdateRequest{
+			ID:           wh.Meta.ID,
+			StatusCode:   statusCode,
+			Status:       types.RequestStatusFromCode(statusCode),
+			ResponseBody: []byte(fmt.Sprintf("request failed, HTTP client error: %s", err)),
+			Retries:      retries,
+		}, nil
 	}
 
-	var bodyStr string
-	if resp.StatusCode > 399 {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err == nil {
-			bodyStr = string(body)
-		}
-
-		r.logger.Warnw("unexpected status code",
-			"status_code", resp.StatusCode,
-			"destination", wh.Meta.OutputDestination,
-			"method", wh.Method,
-			"response_body", bodyStr,
-			"request_body", wh.Body,
-		)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &types.LogUpdateRequest{
+			ID:              wh.Meta.ID,
+			StatusCode:      statusCode,
+			Status:          types.RequestStatusFromCode(statusCode),
+			ResponseBody:    []byte(fmt.Sprintf("failed to read response body, error: %s", err)),
+			Retries:         retries,
+			ResponseHeaders: resp.Header,
+		}, nil
 	}
 
-	return &types.EventStatus{
-		ID:         wh.Meta.ID,
-		StatusCode: resp.StatusCode,
-		Message:    bodyStr,
-		Retries:    retries,
-	}
+	r.logger.Infow("webhook forwarded",
+		"status_code", resp.StatusCode,
+		"destination", wh.Meta.OutputDestination,
+		"method", wh.Method,
+	)
+
+	return &types.LogUpdateRequest{
+		ID:              wh.Meta.ID,
+		StatusCode:      resp.StatusCode,
+		ResponseBody:    body,
+		Status:          types.RequestStatusFromCode(statusCode),
+		ResponseHeaders: resp.Header,
+		Retries:         retries,
+	}, nil
 }

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -10,6 +11,7 @@ import (
 	"github.com/webhookrelay/relay-go/pkg/cond"
 	"github.com/webhookrelay/relay-go/pkg/forward"
 	"github.com/webhookrelay/relay-go/pkg/gopool"
+	"github.com/webhookrelay/relay-go/pkg/logger"
 	"github.com/webhookrelay/relay-go/pkg/types"
 )
 
@@ -35,20 +37,21 @@ var (
 
 // Opts - client configuration
 type Opts struct {
+	HTTPClient              *http.Client
 	AccessKey, AccessSecret string
 	// Optional way to turn off TLS certificate validation
 	InsecureSkipVerify bool
-
-	Forwarder forward.Forwarder
-	Debug     bool
-	Logger    *zap.SugaredLogger
+	Forwarder          forward.Forwarder
+	Debug              bool
+	Logger             *zap.SugaredLogger
 	// Websocket server address, defaults to
-	// wss://my.webhookrelay.com/v1/socket
-	WebSocketAddress string
+	// wss://my.webhookrelay.com/
+	ServerAddress string
 }
 
 // DefaultClient - default client that connects to webhookrelay service via gRPC protocol
 type DefaultClient struct {
+	httpClient   *http.Client
 	forwarder    forward.Forwarder
 	wsConn       *websocket.Conn
 	wsHealthPing chan *types.Event
@@ -63,19 +66,16 @@ type DefaultClient struct {
 // NewDefaultClient - create new default client with given options
 func NewDefaultClient(opts *Opts) *DefaultClient {
 	if opts.Logger == nil {
-		cfg := zap.NewProductionConfig()
-		cfg.DisableCaller = true
-		cfg.DisableStacktrace = true
+		opts.Logger = logger.GetLoggerInstance(logger.DefaultLogLevel).Sugar()
+	}
 
-		l, err := cfg.Build()
-		if err != nil {
-			panic("failed to initialize logger")
-		}
-		opts.Logger = l.Sugar()
+	if opts.HTTPClient == nil {
+		opts.HTTPClient = http.DefaultClient
 	}
 
 	return &DefaultClient{
 		opts:         opts,
+		httpClient:   opts.HTTPClient,
 		logger:       opts.Logger,
 		forwarder:    opts.Forwarder,
 		goPool:       gopool.NewPool(workers, queue, 1),
@@ -85,6 +85,7 @@ func NewDefaultClient(opts *Opts) *DefaultClient {
 	}
 }
 
+// StartRelay - starts relay agent
 func (c *DefaultClient) StartRelay(ctx context.Context, filter *Filter) error {
 	c.filter = filter
 	return c.startWebSocketRelay(ctx)
