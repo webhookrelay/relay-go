@@ -26,4 +26,9 @@ test-pretty:
 	go test -json  -v `go list ./... | egrep -v /tests/` -cover | tparse -all -smallscreen
 
 gen-json-types:
+	go get -u github.com/mailru/easyjson/...
 	easyjson -all pkg/types/ws_types.go
+	easyjson -all pkg/types/request_log.go
+
+run: install
+	relayd forward
