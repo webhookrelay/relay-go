@@ -7,18 +7,23 @@ workspace:
 
 steps:
 - name: build
-  image: golang:1.12
+  image: golang:1.14
+  environment:
+    GO111MODULE: off
   commands:
     - make install
 
 - name: test
-  image: golang:1.12
+  image: golang:1.14
+  environment:
+    GO111MODULE: off
   commands:
     - make test-pretty 
 
 - name: e2e-test
-  image: golang:1.12
+  image: golang:1.14
   environment:
+    GO111MODULE: off
     BUCKETS:
       from_secret: buckets
     INPUT_URL:
