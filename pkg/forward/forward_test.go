@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/stretchr/testify/assert"
+
 	"net/http/httptest"
 	"testing"
 
@@ -29,10 +31,11 @@ func TestRelaySuccess(t *testing.T) {
 		Body:   "hi",
 	}
 
-	ws := dr.Forward(wr)
+	ws, err := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("unexpected status: %d", ws.StatusCode)
 	}
+	assert.Nil(t, err)
 
 	if !relayed {
 		t.Errorf("failed to relay")
@@ -60,10 +63,11 @@ func TestRelayCheckBody(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Forward(wr)
+	ws, err := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("failed to relay, got status: %d", ws.StatusCode)
 	}
+	assert.Nil(t, err)
 }
 
 func TestRelayRetryOnce(t *testing.T) {
@@ -93,10 +97,11 @@ func TestRelayRetryOnce(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Forward(wr)
+	ws, err := dr.Forward(wr)
 	if ws.StatusCode != 200 {
 		t.Errorf("failed to relay, got status: %d", ws.StatusCode)
 	}
+	assert.Nil(t, err)
 	if ws.Retries != 1 {
 		t.Errorf("expected 1 retry, got: %d", ws.Retries)
 	}
@@ -121,11 +126,11 @@ func TestRelayGiveUp(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Forward(wr)
+	ws, err := dr.Forward(wr)
 	if ws.StatusCode != http.StatusInternalServerError {
 		t.Errorf("should have failed with 500, got: %d", ws.StatusCode)
 	}
-
+	assert.Nil(t, err)
 	if ws.Retries != 1 {
 		t.Errorf("unexpected amount of retries: %d", ws.Retries)
 	}
@@ -157,10 +162,11 @@ func TestRelayRetryTwice(t *testing.T) {
 		Body:   payload,
 	}
 
-	ws := dr.Forward(wr)
+	ws, err := dr.Forward(wr)
 	if ws.StatusCode != http.StatusOK {
 		t.Errorf("should have failed with 200, got: %d", ws.StatusCode)
 	}
+	assert.Nil(t, err)
 
 	if ws.Retries != 3 {
 		t.Errorf("unexpected amount of retries: %d", ws.Retries)
